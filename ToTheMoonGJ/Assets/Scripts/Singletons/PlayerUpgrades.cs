@@ -10,6 +10,7 @@ public class PlayerUpgrades : MonoBehaviour
 
     [Header("Jetpack Upgrades")]
     [SerializeField] public float jetpackPower;
+    [SerializeField] public float maxSpeed;
     [SerializeField] public float jetpackFuel;
     [SerializeField] public float lateralSpeed;
     private void Awake()
@@ -42,14 +43,14 @@ public class PlayerUpgrades : MonoBehaviour
         jetpackPower = playerMovement.verticalForce;
         jetpackFuel = playerMovement.maxFuel;
         lateralSpeed = playerMovement.horizontalMovement;
-        //Debug.Log($"{jetpackFuel}, {jetpackFuel}, {lateralSpeed}");
+        maxSpeed = playerMovement.maxSpeed;
         updateStatUI.UpdateUI();
     }
 
     public void UpgradeJetpackPower(float powerIncrease)
     {
-        jetpackPower += powerIncrease;
-        playerMovement.verticalForce = jetpackPower;
+        playerMovement.verticalForce += powerIncrease;
+        jetpackPower = playerMovement.verticalForce;
     }
 
     public void UpgradeJetpackFuel(float fuelIncrease)
@@ -59,9 +60,14 @@ public class PlayerUpgrades : MonoBehaviour
         playerMovement.fuel = playerMovement.maxFuel;
     }
 
-    public void UpgradeLateralSpeed(float speedIncrease)
+    public void UpgradeLateralSpeed(float lateralSpeedIncrease)
     {
-        lateralSpeed += speedIncrease;
+        lateralSpeed += lateralSpeedIncrease;
         playerMovement.horizontalMovement = lateralSpeed;
+    }
+    public void UpgradeMaxSpeed(float maxSpeedIncrease)
+    {
+        maxSpeed += maxSpeedIncrease;
+        playerMovement.maxSpeed = maxSpeed;
     }
 }

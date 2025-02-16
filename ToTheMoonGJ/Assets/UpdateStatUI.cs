@@ -7,7 +7,8 @@ public class UpdateStatUI : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI powerText;
     [SerializeField] private TextMeshProUGUI fuelText;
-    [SerializeField] private TextMeshProUGUI speedText;
+    [SerializeField] private TextMeshProUGUI lateralSpeedText;
+    [SerializeField] private TextMeshProUGUI maxSpeedText;
     [SerializeField] private TextMeshProUGUI moneyText;
 
     private void OnEnable()
@@ -20,7 +21,8 @@ public class UpdateStatUI : MonoBehaviour
         {
             powerText.text = PlayerUpgrades.Instance.jetpackPower.ToString();
             fuelText.text = PlayerUpgrades.Instance.jetpackFuel.ToString();
-            speedText.text = PlayerUpgrades.Instance.lateralSpeed.ToString();
+            lateralSpeedText.text = PlayerUpgrades.Instance.lateralSpeed.ToString();
+            maxSpeedText.text = PlayerUpgrades.Instance.maxSpeed.ToString();
         }
 
         if (CurrencyManager.Instance != null)

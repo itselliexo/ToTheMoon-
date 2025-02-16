@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro.EditorUtilities;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -13,11 +14,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool runCanEnd;
 
     [Header("Movement Settings")]
-    [SerializeField] private float horizontalMovement;
-    [SerializeField] private float verticalForce;
+    [SerializeField] public float horizontalMovement;
+    [SerializeField] public float verticalForce;
     [SerializeField] public float maxSpeed;
     [SerializeField] public float maxFuel;
-    [SerializeField] private float fuel;
+    [SerializeField] public float fuel;
 
     [Header("Player stat stracker")]
     [SerializeField] private float currentHeight;
@@ -26,6 +27,7 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        fuel = maxFuel;
     }
 
     void Update()
@@ -47,11 +49,20 @@ public class PlayerMovement : MonoBehaviour
         {
             runCanEnd = false;
         }
+
+        if (runCanEnd)
+        {
+            rb.constraints = RigidbodyConstraints.FreezePositionZ;
+        }
+        else
+        {
+            rb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ; ;
+        }
     }
 
     private void HandleJetpack()
     {
-        if (Input.GetKey(KeyCode.Space) && fuel > 0)
+        if (Input.GetKey(KeyCode.W) && fuel > 0)
         {
             rb.AddForce(Vector3.up * verticalForce, ForceMode.Acceleration);
             fuel -= Time.deltaTime;
@@ -62,14 +73,14 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.A) && fuel > 0)
         {
-            rb.AddForce(new Vector3(-horizontalMovement, 0, 0), ForceMode.Impulse);
+            rb.AddForce(new Vector3(-horizontalMovement, 0, 0), ForceMode.Acceleration);
             fuel -= Time.deltaTime;
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
         }
 
         if (Input.GetKey(KeyCode.D) && fuel > 0)
         {
-            rb.AddForce(new Vector3(horizontalMovement, 0, 0), ForceMode.Impulse);
+            rb.AddForce(new Vector3(horizontalMovement, 0, 0), ForceMode.Acceleration);
             fuel -= Time.deltaTime;
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
         }
@@ -135,5 +146,7 @@ public class PlayerMovement : MonoBehaviour
     public void FinalizeRun()
     {
         CurrencyManager.Instance.UpdateMoneyBasedOnHeight(maxHeightReached);
+
+        
     }
 }

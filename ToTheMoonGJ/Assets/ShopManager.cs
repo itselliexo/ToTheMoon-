@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ShopManager : MonoBehaviour
 {
     [SerializeField] public static ShopManager Instance;
+
+    [SerializeField] public PlayerMovement playerMovement;
 
     [Header("UI References")]
     [SerializeField] public GameObject shopPanel;
@@ -20,11 +23,24 @@ public class ShopManager : MonoBehaviour
     [SerializeField] private Button speedSellButton;
     [SerializeField] private Button maxSpeedSellButton;
 
+    [SerializeField] private Button unlockDownThrusters;
+    [SerializeField] private Button sellDownThrusters;
+
     [Header("Upgrade Prices")]
     [SerializeField] public int fuelUpgradeCost;
     [SerializeField] public int powerUpgradeCost;
     [SerializeField] public int lateralSpeedUpgradeCost;
     [SerializeField] public int maxSpeedUpgradeCost;
+
+    [SerializeField] public int downThrusterCost;
+
+    [Header("Upgrade Quantity")]
+    [SerializeField] public int fuelUpgradeAmount;
+    [SerializeField] public int powerUpgradeAmount;
+    [SerializeField] public int lateralSpeedUpgradeAmount;
+    [SerializeField] public int maxSpeedUpgradeAmount;
+
+    [SerializeField] public bool dTUnlocked = false;
 
     private void Awake()
     {
@@ -45,6 +61,17 @@ public class ShopManager : MonoBehaviour
         {
             shopPanel = GameObject.FindGameObjectWithTag("Shop");
         }
+
+        if (playerMovement == null)
+        {
+            playerMovement = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMovement>();
+
+            if(playerMovement == null)
+            {
+                Debug.Log("Initialisation failed (playerMovement)");
+            }
+        }
+
         shopPanel.SetActive(false);
         fuelUpgradeButton.onClick.AddListener(() => BuyFuelUpgrade(fuelUpgradeCost));
         powerUpgradeButton.onClick.AddListener(() => BuyPowerUpgrade(powerUpgradeCost));
@@ -55,6 +82,9 @@ public class ShopManager : MonoBehaviour
         powerSellButton.onClick.AddListener(() => SellPowerUpgrade(powerUpgradeCost));
         speedSellButton.onClick.AddListener(() => SellSpeedUpgrade(lateralSpeedUpgradeCost));
         maxSpeedSellButton.onClick.AddListener(() => SellMaxSpeedUpgrade(maxSpeedUpgradeCost));
+
+        unlockDownThrusters.onClick.AddListener(() => UnlockDownThrusters(downThrusterCost));
+        sellDownThrusters.onClick.AddListener(() => SellDownThrusters(downThrusterCost));
     }
 
     public void BuyFuelUpgrade(int cost)
@@ -63,7 +93,7 @@ public class ShopManager : MonoBehaviour
         {
             CurrencyManager.Instance.SpendMoney(cost);
 
-            PlayerUpgrades.Instance.UpgradeJetpackFuel(1);
+            PlayerUpgrades.Instance.UpgradeJetpackFuel(fuelUpgradeAmount);
             Debug.Log("Fuel Upgrade Purchased!");
             updateStatsUI.UpdateUI();
         }
@@ -79,7 +109,7 @@ public class ShopManager : MonoBehaviour
         {
             CurrencyManager.Instance.AddMoney(cost);
             Debug.Log($"Upgrade sold for {cost}");
-            PlayerUpgrades.Instance.DowngradeJetpackFuel(1);
+            PlayerUpgrades.Instance.DowngradeJetpackFuel(fuelUpgradeAmount);
             updateStatsUI.UpdateUI();
         }
     }
@@ -90,7 +120,7 @@ public class ShopManager : MonoBehaviour
         {
             CurrencyManager.Instance.SpendMoney(cost);
 
-            PlayerUpgrades.Instance.UpgradeJetpackPower(1);
+            PlayerUpgrades.Instance.UpgradeJetpackPower(powerUpgradeAmount);
             Debug.Log("Fuel Upgrade Purchased!");
             updateStatsUI.UpdateUI();
         }
@@ -105,7 +135,7 @@ public class ShopManager : MonoBehaviour
         {
             CurrencyManager.Instance.AddMoney(cost);
             Debug.Log($"Upgrade sold for {cost}");
-            PlayerUpgrades.Instance.DowngradeJetpackPower(1);
+            PlayerUpgrades.Instance.DowngradeJetpackPower(powerUpgradeAmount);
             updateStatsUI.UpdateUI();
         }
     }
@@ -116,7 +146,7 @@ public class ShopManager : MonoBehaviour
         {
             CurrencyManager.Instance.SpendMoney(cost);
 
-            PlayerUpgrades.Instance.UpgradeLateralSpeed(1);
+            PlayerUpgrades.Instance.UpgradeLateralSpeed(lateralSpeedUpgradeAmount);
             Debug.Log("Fuel Upgrade Purchased!");
             updateStatsUI.UpdateUI();
         }
@@ -131,7 +161,7 @@ public class ShopManager : MonoBehaviour
         {
             CurrencyManager.Instance.AddMoney(cost);
             Debug.Log($"Upgrade sold for {cost}");
-            PlayerUpgrades.Instance.DowngradeLateralSpeed(1);
+            PlayerUpgrades.Instance.DowngradeLateralSpeed(lateralSpeedUpgradeAmount);
             updateStatsUI.UpdateUI();
         }
     }
@@ -142,7 +172,7 @@ public class ShopManager : MonoBehaviour
         {
             CurrencyManager.Instance.SpendMoney(cost);
 
-            PlayerUpgrades.Instance.UpgradeMaxSpeed(1);
+            PlayerUpgrades.Instance.UpgradeMaxSpeed(maxSpeedUpgradeAmount);
             Debug.Log("Max Speed Upgrade Purchased!");
             updateStatsUI.UpdateUI();
         }
@@ -157,7 +187,46 @@ public class ShopManager : MonoBehaviour
         {
             CurrencyManager.Instance.AddMoney(cost);
             Debug.Log($"Upgrade sold for {cost}");
-            PlayerUpgrades.Instance.DowngradeMaxSpeed(1);
+            PlayerUpgrades.Instance.DowngradeMaxSpeed(maxSpeedUpgradeAmount);
+            updateStatsUI.UpdateUI();
+        }
+    }
+
+    public void UnlockDownThrusters(int cost)
+    {
+        if (dTUnlocked == true)
+        {
+            Debug.Log("You already own this upgrade");
+            return;
+        }
+
+        if (CurrencyManager.Instance.money >= cost)
+        {
+            CurrencyManager.Instance.SpendMoney(cost);
+
+            if (dTUnlocked == false)
+            {
+                playerMovement.isDownThrustersUnlocked = true;
+                dTUnlocked = true;
+            }
+
+            Debug.Log("Max Speed Upgrade Purchased!");
+            updateStatsUI.UpdateUI();
+        }
+        else
+        {
+            Debug.Log("Youre too broke");
+        }
+    }
+
+    public void SellDownThrusters(int cost)
+    {
+        if (dTUnlocked == true)
+        {
+            CurrencyManager.Instance.AddMoney(cost);
+            Debug.Log($"Upgrade sold for {cost}");
+            playerMovement.isDownThrustersUnlocked = false;
+            dTUnlocked = false;
             updateStatsUI.UpdateUI();
         }
     }

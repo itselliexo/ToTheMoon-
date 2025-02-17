@@ -28,9 +28,10 @@ public class CameraMovement : MonoBehaviour
     {
         if (player != null)
         {
-            Vector3 targetPosition = new Vector3(player.transform.position.x + playerOffset.x, player.transform.position.y + playerOffset.y, transform.position.z);
+            Vector3 targetPosition = new Vector3(player.transform.position.x + playerOffset.x, player.transform.position.y + playerOffset.y, playerOffset.z);
 
             transform.position = targetPosition;
+
         }
     }
 }

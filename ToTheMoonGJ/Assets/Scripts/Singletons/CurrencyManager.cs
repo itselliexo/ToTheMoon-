@@ -9,6 +9,7 @@ public class CurrencyManager : MonoBehaviour
     [SerializeField] PlayerMovement playerMovement;
     public int money;
     [SerializeField] float previousMaxHeight;
+    [SerializeField] float airTimeMultiplier;
 
     private void Awake()
     {
@@ -49,14 +50,14 @@ public class CurrencyManager : MonoBehaviour
     {
         if (currentHeight > previousMaxHeight)
         {
-            int earnedMoney = Mathf.FloorToInt((currentHeight - previousMaxHeight) * 2);
+            int earnedMoney = Mathf.FloorToInt(currentHeight - previousMaxHeight);
             AddMoney(earnedMoney);
             previousMaxHeight = currentHeight;
             Debug.Log($"{earnedMoney} Height money earned");
         }
         else
         {
-            int earnedMoney = Mathf.FloorToInt((currentHeight - previousMaxHeight) * 1);
+            int earnedMoney = Mathf.FloorToInt((currentHeight - previousMaxHeight) / 2);
             AddMoney(earnedMoney);
             Debug.Log($"{earnedMoney} Height money earned");
         }
@@ -64,7 +65,7 @@ public class CurrencyManager : MonoBehaviour
 
     public void UpdateMoneyBasedOnAirTime(float airTime)
     {
-        int earnedMoney = Mathf.FloorToInt(airTime);
+        int earnedMoney = Mathf.FloorToInt(airTime * airTimeMultiplier);
         AddMoney(earnedMoney);
         Debug.Log($"{earnedMoney} Airtime money earned");
     }

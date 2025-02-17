@@ -10,6 +10,8 @@ TagManager:
   - PlayerSpawn
   - Obstical
   - DayText
+  - NewSpawnLocation1
+  - NewSpawnLocation2
   layers:
   - Default
   - TransparentFX

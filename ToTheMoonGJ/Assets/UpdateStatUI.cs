@@ -18,12 +18,14 @@ public class UpdateStatUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI fuelCostText;
     [SerializeField] private TextMeshProUGUI lateralSpeedCostText;
     [SerializeField] private TextMeshProUGUI maxSpeedCostText;
+    [SerializeField] private TextMeshProUGUI downThrustersCostText;
 
     [Header("Sell Value")]
     [SerializeField] private TextMeshProUGUI powerSellText;
     [SerializeField] private TextMeshProUGUI fuelSellText;
     [SerializeField] private TextMeshProUGUI lateralSpeedSellText;
     [SerializeField] private TextMeshProUGUI maxSpeedSellText;
+    [SerializeField] private TextMeshProUGUI downThrustersSellText;
 
     private void OnEnable()
     {
@@ -48,11 +50,13 @@ public class UpdateStatUI : MonoBehaviour
             fuelCostText.text = "-" + ShopManager.Instance.fuelUpgradeCost.ToString();
             lateralSpeedCostText.text = "-" + ShopManager.Instance.lateralSpeedUpgradeCost.ToString();
             maxSpeedCostText.text = "-" + ShopManager.Instance.maxSpeedUpgradeCost.ToString();
+            downThrustersCostText.text = "-" + ShopManager.Instance.downThrusterCost.ToString();
 
             powerSellText.text = "+" + ShopManager.Instance.powerUpgradeCost.ToString();
             fuelSellText.text = "+" + ShopManager.Instance.fuelUpgradeCost.ToString();
             lateralSpeedSellText.text = "+" + ShopManager.Instance.lateralSpeedUpgradeCost.ToString();
             maxSpeedSellText.text = "+" + ShopManager.Instance.maxSpeedUpgradeCost.ToString();
+            downThrustersSellText.text = "+" + ShopManager.Instance.downThrusterCost.ToString();
         }
         else
         {

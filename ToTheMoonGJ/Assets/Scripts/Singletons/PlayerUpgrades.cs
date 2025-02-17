@@ -122,7 +122,7 @@ public class PlayerUpgrades : MonoBehaviour
 
     private void UpdateSellStatus()
     {
-        if (playerMovement.verticalForce > 1)
+        if (playerMovement.verticalForce > ShopManager.Instance.powerUpgradeAmount)
         {
             canSellPower = true;
         }
@@ -131,7 +131,7 @@ public class PlayerUpgrades : MonoBehaviour
             canSellPower = false;
         }
 
-        if (playerMovement.maxFuel > 1)
+        if (playerMovement.maxFuel > ShopManager.Instance.fuelUpgradeAmount)
         {
             canSellFuel = true;
         }
@@ -140,7 +140,7 @@ public class PlayerUpgrades : MonoBehaviour
             canSellFuel = false;
         }
 
-        if (playerMovement.horizontalMovement > 1)
+        if (playerMovement.horizontalMovement > ShopManager.Instance.lateralSpeedUpgradeAmount)
         {
             canSellLatSpeed = true;
         }
@@ -149,7 +149,7 @@ public class PlayerUpgrades : MonoBehaviour
             canSellLatSpeed = false;
         }
 
-        if (playerMovement.maxSpeed > 1)
+        if (playerMovement.maxSpeed > ShopManager.Instance.maxSpeedUpgradeAmount)
         {
             canSellMaxSpeed = true;
         }

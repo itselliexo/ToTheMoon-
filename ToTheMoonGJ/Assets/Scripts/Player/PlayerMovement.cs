@@ -27,6 +27,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool isRagdoll = false;
     [SerializeField] private float timeOnObstical;
     [SerializeField] private float resetTime;
+    [SerializeField] public bool isDownThrustersUnlocked = false;
 
     [Header("Player stats tracker")]
     [SerializeField] private float currentHeight;
@@ -121,6 +122,15 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(Vector3.up * verticalForce, ForceMode.Force);
             fuel -= Time.deltaTime;
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
+        }
+        else if (Input.GetKey(KeyCode.S) && fuel > 0)
+        {
+            if (isDownThrustersUnlocked == true)
+            {
+                rb.AddForce(-Vector3.up * verticalForce / 2, ForceMode.Force);
+                fuel -= Time.deltaTime;
+                fuel = Mathf.Clamp(fuel, 0, maxFuel);
+            }
         }
     }
     private void HandleMovement()

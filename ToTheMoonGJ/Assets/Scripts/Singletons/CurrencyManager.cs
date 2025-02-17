@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class CurrencyManager : MonoBehaviour
@@ -30,7 +31,8 @@ public class CurrencyManager : MonoBehaviour
 
     public void AddMoney(int amount)
     {
-        money += amount;
+            money += amount;
+            money = Mathf.Clamp(money, 0, int.MaxValue);
     }
 
     public bool SpendMoney(int amount)
@@ -50,11 +52,20 @@ public class CurrencyManager : MonoBehaviour
             int earnedMoney = Mathf.FloorToInt((currentHeight - previousMaxHeight) * 2);
             AddMoney(earnedMoney);
             previousMaxHeight = currentHeight;
+            Debug.Log($"{earnedMoney} Height money earned");
         }
         else
         {
             int earnedMoney = Mathf.FloorToInt((currentHeight - previousMaxHeight) * 1);
             AddMoney(earnedMoney);
+            Debug.Log($"{earnedMoney} Height money earned");
         }
+    }
+
+    public void UpdateMoneyBasedOnAirTime(float airTime)
+    {
+        int earnedMoney = Mathf.FloorToInt(airTime);
+        AddMoney(earnedMoney);
+        Debug.Log($"{earnedMoney} Airtime money earned");
     }
 }

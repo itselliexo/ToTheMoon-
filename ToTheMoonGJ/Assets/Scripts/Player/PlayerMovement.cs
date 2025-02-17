@@ -7,11 +7,14 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private Rigidbody rb;
+    [SerializeField] private UpdateStatUI updateStatUI;
+    [SerializeField] private GameObject shopPanel;
 
     [SerializeField] private bool isGrounded;
     [SerializeField] private float airTimeRequiredToEndRun;
     [SerializeField] private float airTime;
     [SerializeField] private bool runCanEnd;
+    [SerializeField] private bool shopIsOpen;
 
     [Header("Movement Settings")]
     [SerializeField] public float horizontalMovement;
@@ -28,35 +31,75 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         fuel = maxFuel;
+
+        if (updateStatUI == null)
+        {
+            updateStatUI = FindObjectOfType<UpdateStatUI>();
+
+            if(updateStatUI == null)
+            {
+                Debug.Log("No UI updater in scene");
+            }
+        }
+
+        if (shopPanel == null)
+        {
+            shopPanel = GameObject.FindGameObjectWithTag("Shop");
+
+            if (shopPanel == null)
+            {
+                Debug.Log("No shop found in scene");
+            }
+        }
     }
 
     void Update()
     {
-        HandleJetpack();
-        HandleMovement();
+        if (!shopIsOpen)
+        {
+            HandleMovement();
+            HandleJetpack();
+        }
+
         TrackMaxHeight();
 
-        if (!isGrounded)
+        if (shopPanel.activeSelf)
         {
-            airTime += Time.deltaTime;
-        }
-
-        if (airTime >= airTimeRequiredToEndRun)
-        {
-            runCanEnd = true;
+            shopIsOpen = true;
         }
         else
         {
-            runCanEnd = false;
+            shopIsOpen = false;
         }
 
-        if (runCanEnd)
+        if (!shopIsOpen)
         {
-            rb.constraints = RigidbodyConstraints.FreezePositionZ;
+            if (!isGrounded)
+            {
+                airTime += Time.deltaTime;
+            }
+
+            if (airTime >= airTimeRequiredToEndRun)
+            {
+                runCanEnd = true;
+            }
+            else
+            {
+                runCanEnd = false;
+            }
+
+            if (runCanEnd)
+            {
+                rb.constraints = RigidbodyConstraints.FreezePositionZ;
+            }
+            else
+            {
+                rb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ; ;
+            }
         }
-        else
+        if (shopIsOpen)
         {
-            rb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ; ;
+            airTime = 0f;
         }
     }
 
@@ -64,7 +107,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.W) && fuel > 0)
         {
-            rb.AddForce(Vector3.up * verticalForce, ForceMode.Acceleration);
+            rb.AddForce(Vector3.up * verticalForce, ForceMode.Force);
             fuel -= Time.deltaTime;
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
         }
@@ -73,14 +116,13 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.A) && fuel > 0)
         {
-            rb.AddForce(new Vector3(-horizontalMovement, 0, 0), ForceMode.Acceleration);
+            rb.AddForce(new Vector3(-horizontalMovement * 3, 0, 0), ForceMode.Force);
             fuel -= Time.deltaTime;
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
         }
-
-        if (Input.GetKey(KeyCode.D) && fuel > 0)
+        else if (Input.GetKey(KeyCode.D) && fuel > 0)
         {
-            rb.AddForce(new Vector3(horizontalMovement, 0, 0), ForceMode.Acceleration);
+            rb.AddForce(new Vector3(horizontalMovement * 3, 0, 0), ForceMode.Force);
             fuel -= Time.deltaTime;
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
         }
@@ -89,7 +131,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (rb.velocity.y > maxSpeed)
         {
-            velocity.y = Mathf.Clamp(velocity.y, 0, maxSpeed);
+            velocity.y = Mathf.Clamp(velocity.y, 0, (maxSpeed * 10));
         }
 
         if (Mathf.Abs(velocity.x) > maxSpeed)
@@ -114,11 +156,13 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("Floor"))
         {
             isGrounded = true;
+            updateStatUI.UpdateUI();
         }
 
         if (runCanEnd && collision.gameObject.CompareTag("Floor"))
         {
             FinalizeRun();
+            runCanEnd = false;
         }
     }
 
@@ -127,11 +171,13 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("Floor"))
         {
             isGrounded = true;
+            updateStatUI.UpdateUI();
         }
 
         if (runCanEnd && collision.gameObject.CompareTag("Floor"))
         {
             FinalizeRun();
+            runCanEnd = false;
         }
     }
 
@@ -146,7 +192,15 @@ public class PlayerMovement : MonoBehaviour
     public void FinalizeRun()
     {
         CurrencyManager.Instance.UpdateMoneyBasedOnHeight(maxHeightReached);
+        CurrencyManager.Instance.UpdateMoneyBasedOnAirTime(airTime);
 
-        
+        if (runCanEnd)
+        {
+            if (!shopIsOpen)
+            {
+                shopPanel.SetActive(true);
+                shopIsOpen = true;
+            }
+        }
     }
 }

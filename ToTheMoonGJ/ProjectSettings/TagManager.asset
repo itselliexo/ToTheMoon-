@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Floor
   - UpdateStatUI
+  - Shop
+  - PlayerSpawn
   layers:
   - Default
   - TransparentFX

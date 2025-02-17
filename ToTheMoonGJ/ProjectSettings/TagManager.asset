@@ -8,6 +8,8 @@ TagManager:
   - UpdateStatUI
   - Shop
   - PlayerSpawn
+  - Obstical
+  - DayText
   layers:
   - Default
   - TransparentFX

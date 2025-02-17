@@ -15,6 +15,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float airTime;
     [SerializeField] private bool runCanEnd;
     [SerializeField] private bool shopIsOpen;
+    [SerializeField] private GameObject playerSpawnLocation;
 
     [Header("Movement Settings")]
     [SerializeField] public float horizontalMovement;
@@ -22,8 +23,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] public float maxSpeed;
     [SerializeField] public float maxFuel;
     [SerializeField] public float fuel;
+    [SerializeField] private float moveDirection = 0f;
+    [SerializeField] private bool isRagdoll = false;
+    [SerializeField] private float timeOnObstical;
+    [SerializeField] private float resetTime;
 
-    [Header("Player stat stracker")]
+    [Header("Player stats tracker")]
     [SerializeField] private float currentHeight;
     [SerializeField] public float maxHeightReached;
         
@@ -51,13 +56,19 @@ public class PlayerMovement : MonoBehaviour
                 Debug.Log("No shop found in scene");
             }
         }
+
+        if (playerSpawnLocation == null)
+        {
+            playerSpawnLocation = GameObject.FindGameObjectWithTag("PlayerSpawn");
+        }
     }
 
     void Update()
     {
-        if (!shopIsOpen)
+        if (!shopIsOpen && !isRagdoll)
         {
             HandleMovement();
+            HandleRotation();
             HandleJetpack();
         }
 
@@ -94,7 +105,7 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
-                rb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ; ;
+                rb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationX;
             }
         }
         if (shopIsOpen)
@@ -127,7 +138,24 @@ public class PlayerMovement : MonoBehaviour
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
         }
 
-        Vector3 velocity = rb.velocity;
+        /*if (Input.GetKey(KeyCode.A))
+        {
+            moveDirection = -1f;
+        }
+        else
+        {
+            moveDirection = 0f;
+        }
+        if (Input.GetKey(KeyCode.D))
+        {
+            moveDirection = 1f;
+        }
+        else
+        {
+            moveDirection = 0f;
+        }*/
+
+            Vector3 velocity = rb.velocity;
 
         if (rb.velocity.y > maxSpeed)
         {
@@ -139,6 +167,25 @@ public class PlayerMovement : MonoBehaviour
             velocity.x = Mathf.Sign(velocity.x) * maxSpeed;
         }
         rb.velocity = velocity;
+    }
+
+    private void HandleRotation()
+    {
+        if (!isRagdoll)
+        {
+            moveDirection = Input.GetKey(KeyCode.A) ? -1 : Input.GetKey(KeyCode.D) ? 1f : 0f;
+            Quaternion targetRotation;
+            if (moveDirection != 0)
+            {
+                targetRotation = Quaternion.Euler(0, moveDirection == 1 ? -40 : 40, 0);
+                transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 10);
+            }
+            if (moveDirection == 0)
+            {
+                targetRotation = Quaternion.Euler(0, 0, 0);
+                transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 10);
+            }
+        }
     }
 
     private void TrackMaxHeight()
@@ -159,10 +206,12 @@ public class PlayerMovement : MonoBehaviour
             updateStatUI.UpdateUI();
         }
 
-        if (runCanEnd && collision.gameObject.CompareTag("Floor"))
+        if (collision.gameObject.CompareTag("Obstical"))
         {
-            FinalizeRun();
-            runCanEnd = false;
+            if (runCanEnd)
+            {
+                isRagdoll = true;
+            }
         }
     }
 
@@ -172,12 +221,32 @@ public class PlayerMovement : MonoBehaviour
         {
             isGrounded = true;
             updateStatUI.UpdateUI();
-        }
 
-        if (runCanEnd && collision.gameObject.CompareTag("Floor"))
+            if(runCanEnd)
+            {
+                FinalizeRun();
+            }
+        }
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.gameObject.CompareTag("Obstical"))
         {
-            FinalizeRun();
-            runCanEnd = false;
+            isGrounded = true;
+            timeOnObstical += Time.deltaTime;
+            if (timeOnObstical >= resetTime)
+            {
+                runCanEnd = true;
+                FinalizeRun();
+                updateStatUI.UpdateUI();
+                transform.position = playerSpawnLocation.transform.position;
+                transform.rotation = playerSpawnLocation.transform.rotation;
+            }
+            if (runCanEnd)
+            {
+                isRagdoll = true;
+            }
         }
     }
 
@@ -187,20 +256,28 @@ public class PlayerMovement : MonoBehaviour
         {
             isGrounded = false;
         }
+
+        if (collision.gameObject.CompareTag("Obstical"))
+        {
+            timeOnObstical = 0f;
+        }
     }
 
     public void FinalizeRun()
     {
+        if (!runCanEnd) return;
+
         CurrencyManager.Instance.UpdateMoneyBasedOnHeight(maxHeightReached);
         CurrencyManager.Instance.UpdateMoneyBasedOnAirTime(airTime);
 
-        if (runCanEnd)
+        runCanEnd = false;
+
+        isRagdoll = false;
+
+        if (!shopIsOpen)
         {
-            if (!shopIsOpen)
-            {
-                shopPanel.SetActive(true);
-                shopIsOpen = true;
-            }
+            shopPanel.SetActive(true);
+            shopIsOpen = true;
         }
     }
 }

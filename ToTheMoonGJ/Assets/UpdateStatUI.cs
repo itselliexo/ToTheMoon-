@@ -10,6 +10,8 @@ public class UpdateStatUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI lateralSpeedText;
     [SerializeField] private TextMeshProUGUI maxSpeedText;
     [SerializeField] private TextMeshProUGUI moneyText;
+    [SerializeField] private TextMeshProUGUI dayText;
+    [SerializeField] public int dayTracker;
 
     [Header("Costs")]
     [SerializeField] private TextMeshProUGUI powerCostText;
@@ -29,6 +31,8 @@ public class UpdateStatUI : MonoBehaviour
     }
     public void UpdateUI()
     {
+        dayText.text = dayTracker.ToString();
+
         if (PlayerUpgrades.Instance != null)
         {
             powerText.text = PlayerUpgrades.Instance.jetpackPower.ToString();
@@ -37,7 +41,7 @@ public class UpdateStatUI : MonoBehaviour
             maxSpeedText.text = PlayerUpgrades.Instance.maxSpeed.ToString();
         }
 
-        if (CurrencyManager.Instance != null)
+        if (CurrencyManager.Instance != null && ShopManager.Instance != null)
         {
             moneyText.text = CurrencyManager.Instance.money.ToString();
             powerCostText.text = "-" + ShopManager.Instance.powerUpgradeCost.ToString();
@@ -49,6 +53,10 @@ public class UpdateStatUI : MonoBehaviour
             fuelSellText.text = "+" + ShopManager.Instance.fuelUpgradeCost.ToString();
             lateralSpeedSellText.text = "+" + ShopManager.Instance.lateralSpeedUpgradeCost.ToString();
             maxSpeedSellText.text = "+" + ShopManager.Instance.maxSpeedUpgradeCost.ToString();
+        }
+        else
+        {
+            Debug.LogError("ShopManager.Instance or CurrencyManager.Instance is null!");
         }
     }
 }

@@ -91,7 +91,7 @@ public class PlayerUpgrades : MonoBehaviour
 
     public void UpgradeLateralSpeed(float lateralSpeedIncrease)
     {
-        lateralSpeed += lateralSpeedIncrease;
+        lateralSpeed += (lateralSpeedIncrease / 10);
         playerMovement.horizontalMovement = lateralSpeed;
         UpdateSellStatus();
     }
@@ -99,7 +99,7 @@ public class PlayerUpgrades : MonoBehaviour
     {
         if (canSellLatSpeed)
         {
-            lateralSpeed = Mathf.Max(lateralSpeed - lateralSpeedDecrease, 1);
+            lateralSpeed = Mathf.Max(lateralSpeed - lateralSpeedDecrease / 10, 1);
             playerMovement.horizontalMovement = lateralSpeed;
         }
         UpdateSellStatus();

@@ -64,7 +64,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    void Update()
+    private void FixedUpdate()
     {
         if (!shopIsOpen && !isRagdoll)
         {
@@ -72,7 +72,10 @@ public class PlayerMovement : MonoBehaviour
             HandleRotation();
             HandleJetpack();
         }
+    }
 
+    void Update()
+    {
         TrackMaxHeight();
 
         if (shopPanel.activeSelf)
@@ -117,55 +120,77 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleJetpack()
     {
+        float verticalMoveInput = 0f;
+
         if (Input.GetKey(KeyCode.W) && fuel > 0)
         {
-            rb.AddForce(Vector3.up * verticalForce, ForceMode.Force);
+            verticalMoveInput = 1f;
+        }
+        else if (Input.GetKey(KeyCode.S) && fuel > 0 && isDownThrustersUnlocked)
+        {
+            verticalMoveInput = -1f;
+        }
+        else
+        {
+            verticalMoveInput = 0f;
+        }
+
+        if (verticalMoveInput != 0f)
+        {
+            Vector3 forceDirection = verticalMoveInput > 0 ? Vector3.up : Vector3.down;
+            float forceAmount = verticalMoveInput > 0 ? verticalForce / 3 : verticalForce / 6;
+
+            rb.AddForce(forceDirection * forceAmount, ForceMode.Impulse);
+
             fuel -= Time.deltaTime;
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
         }
-        else if (Input.GetKey(KeyCode.S) && fuel > 0)
+        Vector3 velocity = rb.velocity;
+
+        if (velocity.y < 0)
         {
-            if (isDownThrustersUnlocked == true)
-            {
-                rb.AddForce(-Vector3.up * verticalForce / 2, ForceMode.Force);
-                fuel -= Time.deltaTime;
-                fuel = Mathf.Clamp(fuel, 0, maxFuel);
-            }
+            velocity.y = Mathf.Clamp(velocity.y, -Mathf.Infinity, Mathf.Infinity);
         }
+        else
+        {
+            velocity.y = Mathf.Clamp(velocity.y, -maxSpeed * 5, maxSpeed * 5);
+        }
+
+        rb.velocity = velocity;
     }
     private void HandleMovement()
     {
+        float horizontalMoveInput = 0f;
+
         if (Input.GetKey(KeyCode.A) && fuel > 0)
         {
-            rb.AddForce(new Vector3(-horizontalMovement * 3, 0, 0), ForceMode.Force);
-            fuel -= Time.deltaTime;
-            fuel = Mathf.Clamp(fuel, 0, maxFuel);
+            horizontalMoveInput = -1f;
         }
         else if (Input.GetKey(KeyCode.D) && fuel > 0)
         {
-            rb.AddForce(new Vector3(horizontalMovement * 3, 0, 0), ForceMode.Force);
-            fuel -= Time.deltaTime;
+            horizontalMoveInput = 1f;
+        }
+        else
+        {
+            horizontalMoveInput = 0f;
+        }
+
+        if (horizontalMoveInput != 0)
+        {
+            rb.AddForce(Vector3.right * horizontalMoveInput * horizontalMovement, ForceMode.Impulse);
+            fuel -= Time.fixedDeltaTime;
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
         }
 
-        /*if (Input.GetKey(KeyCode.A))
+        if (Mathf.Approximately(horizontalMoveInput, 0f))
         {
-            moveDirection = -1f;
+            rb.velocity = new Vector3(rb.velocity.x * 0.98f, rb.velocity.y, rb.velocity.z);
         }
-        else
-        {
-            moveDirection = 0f;
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            moveDirection = 1f;
-        }
-        else
-        {
-            moveDirection = 0f;
-        }*/
 
-            Vector3 velocity = rb.velocity;
+        float clampedX = Mathf.Clamp(rb.velocity.x, -maxSpeed * 5, maxSpeed * 5);
+        rb.velocity = new Vector3(clampedX, rb.velocity.y, rb.velocity.z);
+
+        /*Vector3 velocity = rb.velocity;
 
         if (rb.velocity.y > maxSpeed)
         {
@@ -176,7 +201,7 @@ public class PlayerMovement : MonoBehaviour
         {
             velocity.x = Mathf.Sign(velocity.x) * maxSpeed;
         }
-        rb.velocity = velocity;
+        rb.velocity = velocity;*/
     }
 
     private void HandleRotation()

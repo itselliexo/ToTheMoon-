@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class RestartButtonScript : MonoBehaviour
 {
     [SerializeField] GameObject player;
+    [SerializeField] Ragdoll ragdoll;
     [SerializeField] PlayerMovement playerMovement;
     [SerializeField] Rigidbody playerRb;
     [SerializeField] GameObject playerSpawnLocation;
@@ -52,15 +53,31 @@ public class RestartButtonScript : MonoBehaviour
                 Debug.Log("no updateStatUI assigned");
             }
         }
+
+        if (ragdoll == null)
+        {
+            ragdoll = player.GetComponentInChildren<Ragdoll>();
+
+            if (ragdoll == null)
+            {
+                Debug.Log("initialisation failed");
+            }
+        }
     }
 
     public void RestartLevel()
     {
         updateStatUI.dayTracker++;
 
+        player.transform.position = playerSpawnLocation.transform.position;
+        player.transform.rotation = playerSpawnLocation.transform.rotation;
+
+        ragdoll.ResetRagdoll();
+
         playerRb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ;
 
         ShopManager.Instance.shopPanel.SetActive(false);
         playerMovement.fuel = playerMovement.maxFuel;
+        playerMovement.hud.SetActive(true);
     }
 }

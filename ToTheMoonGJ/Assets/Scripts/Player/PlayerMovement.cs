@@ -9,6 +9,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Rigidbody rb;
     [SerializeField] private UpdateStatUI updateStatUI;
     [SerializeField] private GameObject shopPanel;
+    [SerializeField] public GameObject hud;
+    [SerializeField] public Ragdoll ragdoll;
+    [SerializeField] public ParticleSystem jetpackSmoke;
 
     [SerializeField] private bool isGrounded;
     [SerializeField] private float airTimeRequiredToEndRun;
@@ -24,7 +27,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] public float maxFuel;
     [SerializeField] public float fuel;
     [SerializeField] private float moveDirection = 0f;
-    [SerializeField] private bool isRagdoll = false;
+    [SerializeField] public bool isRagdoll = false;
     [SerializeField] private float timeOnObstical;
     [SerializeField] private float resetTime;
     [SerializeField] public bool isDownThrustersUnlocked = false;
@@ -62,6 +65,16 @@ public class PlayerMovement : MonoBehaviour
         {
             playerSpawnLocation = GameObject.FindGameObjectWithTag("PlayerSpawn");
         }
+
+        if (ragdoll == null)
+        {
+            ragdoll = GetComponentInChildren<Ragdoll>();
+
+            if (ragdoll == null)
+            {
+                Debug.Log("ragdoll component not set up correctly");
+            }
+        }
     }
 
     private void FixedUpdate()
@@ -71,6 +84,7 @@ public class PlayerMovement : MonoBehaviour
             HandleMovement();
             HandleRotation();
             HandleJetpack();
+            HandleJetpackEmmision();
         }
     }
 
@@ -103,7 +117,7 @@ public class PlayerMovement : MonoBehaviour
                 runCanEnd = false;
             }
 
-            if (runCanEnd)
+           if (isRagdoll)
             {
                 rb.constraints = RigidbodyConstraints.FreezePositionZ;
             }
@@ -111,6 +125,8 @@ public class PlayerMovement : MonoBehaviour
             {
                 rb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationX;
             }
+            
+
         }
         if (shopIsOpen)
         {
@@ -144,8 +160,9 @@ public class PlayerMovement : MonoBehaviour
 
             fuel -= Time.deltaTime;
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
+
         }
-        Vector3 velocity = rb.velocity;
+            Vector3 velocity = rb.velocity;
 
         if (velocity.y < 0)
         {
@@ -157,7 +174,37 @@ public class PlayerMovement : MonoBehaviour
         }
 
         rb.velocity = velocity;
+
     }
+
+    private void HandleJetpackEmmision()
+    {
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+        {
+            if (fuel > 0)
+            {
+                jetpackSmoke.Play();
+            }
+        }
+        else
+        {
+            jetpackSmoke.Stop();
+        }
+
+        if (isDownThrustersUnlocked && Input.GetKey(KeyCode.S) && !jetpackSmoke.isPlaying)
+        {
+            if (fuel > 0)
+            {
+                jetpackSmoke.Play();
+            }
+        }
+
+        if (fuel <= 0 && jetpackSmoke.isPlaying)
+        {
+            jetpackSmoke.Stop();
+        }
+    }
+    
     private void HandleMovement()
     {
         float horizontalMoveInput = 0f;
@@ -180,6 +227,7 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(Vector3.right * horizontalMoveInput * horizontalMovement, ForceMode.Impulse);
             fuel -= Time.fixedDeltaTime;
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
+
         }
 
         if (Mathf.Approximately(horizontalMoveInput, 0f))
@@ -220,6 +268,17 @@ public class PlayerMovement : MonoBehaviour
                 targetRotation = Quaternion.Euler(0, 0, 0);
                 transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 10);
             }
+
+           /* if (moveDirection != 0)
+            {
+                Quaternion targetRotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y + (moveDirection == 1 ? -40 : 40), 0);
+                transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 10);
+            }
+            else
+            {
+                Quaternion targetRotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, 0);
+                transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 10);
+            }*/
         }
     }
 
@@ -307,7 +366,11 @@ public class PlayerMovement : MonoBehaviour
 
         runCanEnd = false;
 
+       // ragdoll.ResetRagdoll();
+
         isRagdoll = false;
+
+        hud.SetActive(false);
 
         if (!shopIsOpen)
         {

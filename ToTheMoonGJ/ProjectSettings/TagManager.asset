@@ -12,15 +12,17 @@ TagManager:
   - DayText
   - NewSpawnLocation1
   - NewSpawnLocation2
+  - Spine
+  - Ragdoll
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
-  - 
-  - 
+  - Jetpack
+  - NoPlayerCollision
   - 
   - 
   - 

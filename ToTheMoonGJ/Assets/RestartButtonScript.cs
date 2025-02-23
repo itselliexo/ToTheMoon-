@@ -69,6 +69,8 @@ public class RestartButtonScript : MonoBehaviour
     {
         updateStatUI.dayTracker++;
 
+        Time.timeScale = 1;
+
         player.transform.position = playerSpawnLocation.transform.position;
         player.transform.rotation = playerSpawnLocation.transform.rotation;
 

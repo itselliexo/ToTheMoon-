@@ -15,6 +15,7 @@ TagManager:
   - Spine
   - Ragdoll
   - NewSpawnLocation3
+  - WinScreen
   layers:
   - Default
   - TransparentFX

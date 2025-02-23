@@ -11,7 +11,7 @@ public class Ragdoll : MonoBehaviour
     [SerializeField] PlayerMovement playerMovement;
     [SerializeField] RootFollow rootFollow;
 
-    void Start()
+    void Awake()
     {
         ragdollRigidbodies = GetComponentsInChildren<Rigidbody>();
 

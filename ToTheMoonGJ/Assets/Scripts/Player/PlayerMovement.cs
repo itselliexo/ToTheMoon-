@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro.EditorUtilities;
 using Unity.VisualScripting;
+using TMPro;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -35,6 +35,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float timeOnObstical;
     [SerializeField] private float resetTime;
     [SerializeField] public bool isDownThrustersUnlocked = false;
+    [SerializeField] private bool isPaused;
 
     [Header("Player stats tracker")]
     [SerializeField] private float currentHeight;
@@ -428,6 +429,8 @@ public class PlayerMovement : MonoBehaviour
         ragdoll.ResetRagdoll();
 
         isRagdoll = false;
+
+        Time.timeScale = 0;
 
         hud.SetActive(false);
 

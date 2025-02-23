@@ -7,21 +7,25 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private Rigidbody rb;
-    [SerializeField] private UpdateStatUI updateStatUI;
+    [SerializeField] public UpdateStatUI updateStatUI;
     [SerializeField] private GameObject shopPanel;
     [SerializeField] public GameObject hud;
     [SerializeField] public Ragdoll ragdoll;
     [SerializeField] public ParticleSystem jetpackSmoke;
+    [SerializeField] public GameObject restartIndicator;
+    [SerializeField] public AudioSource rocket;
 
+    [SerializeField] public float emergencyReset;
     [SerializeField] private bool isGrounded;
     [SerializeField] private float airTimeRequiredToEndRun;
     [SerializeField] private float airTime;
     [SerializeField] private bool runCanEnd;
     [SerializeField] private bool shopIsOpen;
-    [SerializeField] private GameObject playerSpawnLocation;
+    [SerializeField] public GameObject playerSpawnLocation;
 
     [Header("Movement Settings")]
     [SerializeField] public float horizontalMovement;
+    [SerializeField] private float horizontalDamper;
     [SerializeField] public float verticalForce;
     [SerializeField] public float maxSpeed;
     [SerializeField] public float maxFuel;
@@ -41,6 +45,8 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         fuel = maxFuel;
 
+        emergencyReset = 0;
+
         if (updateStatUI == null)
         {
             updateStatUI = FindObjectOfType<UpdateStatUI>();
@@ -48,6 +54,16 @@ public class PlayerMovement : MonoBehaviour
             if(updateStatUI == null)
             {
                 Debug.Log("No UI updater in scene");
+            }
+        }
+
+        if (rocket == null)
+        {
+            rocket = GetComponent<AudioSource>();
+
+            if (rocket == null)
+            {
+                Debug.Log("Initialisation failed");
             }
         }
 
@@ -91,6 +107,34 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         TrackMaxHeight();
+
+        if (fuel <= 0)
+        {
+            isRagdoll = true;
+        }
+
+        if (isRagdoll)
+        {
+            rocket.Stop();
+        }
+
+        if (isRagdoll)
+        {
+            emergencyReset += Time.deltaTime;
+            
+            if (emergencyReset >= resetTime)
+            {
+                runCanEnd = true;
+                restartIndicator.SetActive(true);
+
+                if (Input.GetKey(KeyCode.R))
+                {
+                    FinalizeRun();
+                    updateStatUI.UpdateUI();
+                    restartIndicator.SetActive(false);
+                }
+            }
+        }
 
         if (shopPanel.activeSelf)
         {
@@ -179,16 +223,21 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleJetpackEmmision()
     {
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+        if (Input.GetKey(KeyCode.W) /*|| Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)*/)
         {
             if (fuel > 0)
             {
                 jetpackSmoke.Play();
+                if (!rocket.isPlaying)
+                {
+                    rocket.Play();
+                }
             }
         }
         else
         {
             jetpackSmoke.Stop();
+            rocket.Stop();
         }
 
         if (isDownThrustersUnlocked && Input.GetKey(KeyCode.S) && !jetpackSmoke.isPlaying)
@@ -196,12 +245,17 @@ public class PlayerMovement : MonoBehaviour
             if (fuel > 0)
             {
                 jetpackSmoke.Play();
+                if (rocket.isPlaying)
+                {
+                    rocket.Play();
+                }
             }
         }
 
         if (fuel <= 0 && jetpackSmoke.isPlaying)
         {
             jetpackSmoke.Stop();
+            rocket.Stop();
         }
     }
     
@@ -224,7 +278,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (horizontalMoveInput != 0)
         {
-            rb.AddForce(Vector3.right * horizontalMoveInput * horizontalMovement, ForceMode.Impulse);
+            rb.AddForce(Vector3.right * horizontalMoveInput * horizontalMovement * horizontalDamper, ForceMode.Impulse);
             fuel -= Time.fixedDeltaTime;
             fuel = Mathf.Clamp(fuel, 0, maxFuel);
 
@@ -331,11 +385,16 @@ public class PlayerMovement : MonoBehaviour
             timeOnObstical += Time.deltaTime;
             if (timeOnObstical >= resetTime)
             {
+                restartIndicator.SetActive(true);
                 runCanEnd = true;
-                FinalizeRun();
-                updateStatUI.UpdateUI();
-                transform.position = playerSpawnLocation.transform.position;
-                transform.rotation = playerSpawnLocation.transform.rotation;
+                if (Input.GetKey(KeyCode.R))
+                {
+                    FinalizeRun();
+                    restartIndicator.SetActive(false);
+                    updateStatUI.UpdateUI();
+                    transform.position = playerSpawnLocation.transform.position;
+                    transform.rotation = playerSpawnLocation.transform.rotation;
+                }
             }
             if (runCanEnd)
             {
@@ -361,12 +420,12 @@ public class PlayerMovement : MonoBehaviour
     {
         if (!runCanEnd) return;
 
-        CurrencyManager.Instance.UpdateMoneyBasedOnHeight(maxHeightReached);
+       // CurrencyManager.Instance.UpdateMoneyBasedOnHeight(maxHeightReached);
         CurrencyManager.Instance.UpdateMoneyBasedOnAirTime(airTime);
 
         runCanEnd = false;
 
-       // ragdoll.ResetRagdoll();
+        ragdoll.ResetRagdoll();
 
         isRagdoll = false;
 

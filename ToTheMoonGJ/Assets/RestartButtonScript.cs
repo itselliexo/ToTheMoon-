@@ -74,8 +74,10 @@ public class RestartButtonScript : MonoBehaviour
 
         ragdoll.ResetRagdoll();
 
-        playerRb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ;
+        playerMovement.emergencyReset = 0;
 
+        playerRb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationZ;
+        playerMovement.restartIndicator.SetActive(false);
         ShopManager.Instance.shopPanel.SetActive(false);
         playerMovement.fuel = playerMovement.maxFuel;
         playerMovement.hud.SetActive(true);
